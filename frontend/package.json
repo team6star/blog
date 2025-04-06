@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "lodash-es": "^4.17.21",
     "pinia": "^3.0.1",
     "vite-plugin-compression": "^0.5.1",
     "vue": "3.3.4",

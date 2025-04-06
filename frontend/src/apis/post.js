@@ -67,3 +67,13 @@ export async function favorPost(id) {
   });
   return response.data;
 }
+
+export async function advancedSearchPosts({ term, filter }) {
+  let filterQuery = '';
+  if (filter === 'description') {
+    filterQuery = `filters[description][$contains]=${term}`;
+  } else if (filter === 'user.username') {
+    filterQuery = `filters[user][username][$contains]=${term}`;
+  }
+  return loadPosts(filterQuery);
+}

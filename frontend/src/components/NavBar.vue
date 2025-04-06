@@ -2,7 +2,13 @@
   <nav class="navbar">
     <router-link to="/"><img src="../assets/logo.svg" /></router-link>
     <div class="searchInput">
-      <input type="text" @change="searchPosts" />
+      <!-- <input type="text" @change="searchPosts" /> -->
+        <!-- 添加占位符 -->
+      <input type="text" v-model="searchTerm" @input="handleSearch" placeholder="搜索文章" />
+      <!-- 添加清除按钮 -->
+      <button v-if="searchTerm" @click="clearSearch" class="clearBtn">
+        <TheIcon icon="close" />
+      </button>
       <TheIcon icon="search" />
     </div>
     <div class="navItems">
@@ -41,12 +47,14 @@ import { usePostStore } from '../store/post';
 import { useUserStore } from '../store/user';
 import { useRouter } from "vue-router";
 import { ref, computed } from "vue";
+import {debounce} from 'lodash-es';
 
 const showDropdown = ref(false);
 const uiStore = useUIStore();
 const postStore = usePostStore();
 const userStore = useUserStore();
 const router = useRouter();
+const searchTerm = ref("");
 
 const user = computed(() => userStore.user);
 
@@ -54,7 +62,7 @@ function publishPost() {
   uiStore.changeShowPostUpload( true);
 }
 
-async function searchPosts(e) {
+/* async function searchPosts(e) {
   await postStore.searchPosts( e.target.value);
   router.push({
     name: "search_result",
@@ -62,7 +70,33 @@ async function searchPosts(e) {
       term: e.target.value,
     },
   });
+} */
+
+
+//  添加防抖函数
+const debouncedSearch = debounce(async (term) => {
+  await postStore.searchPosts(term);
+  if (term) {
+    router.push({
+      name: "search_result",
+      params: { term: term },
+    });
+  } else {
+    router.push('/');
+  }
+}, 300);
+// 实时搜索
+async function handleSearch() {
+  debouncedSearch(searchTerm.value);
 }
+
+// 清除搜索内容
+function clearSearch() {
+  searchTerm.value = '';
+  postStore.searchResult = [];
+  router.push('/');
+}
+
 
 async function logout() {
   await userStore.logoutUser();
@@ -91,7 +125,7 @@ async function logout() {
   width: 100%;
   padding: 12px;
   padding-left: 36px;
-
+  padding-right: 36px; /* 为清除按钮留出空间 */
   background: #f1f1f1;
   border-radius: 14px;
   border: none;
@@ -103,6 +137,21 @@ async function logout() {
   top: 11px;
   left: 12px;
 }
+/* 清除按钮样式 */
+.clearBtn {
+  position: absolute;
+  right: 12px;
+  top: 50%;            /* 改为基于父容器垂直居中 */
+  transform: translateY(-50%); /* 精确居中定位 */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
 
 .navItems {
   justify-self: end;
